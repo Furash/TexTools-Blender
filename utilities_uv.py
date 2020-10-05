@@ -9,9 +9,10 @@ from math import pi
 from . import settings
 from . import utilities_ui
 
-def selection_store():
-	bm = bmesh.from_edit_mesh(bpy.context.active_object.data);
-	uv_layers = bm.loops.layers.uv.verify();
+def selection_store():	
+	
+	bm = bmesh.from_edit_mesh(bpy.context.active_object.data)
+	uv_layers = bm.loops.layers.uv.verify()
 
 	# https://blender.stackexchange.com/questions/5781/how-to-list-all-selected-elements-in-python
 	# print("selectionStore")
@@ -94,6 +95,43 @@ def selection_restore(bm = None, uv_layers = None):
 
 	bpy.context.view_layer.update()
 
+def move_island(island, dx,dy):
+	
+	obj = bpy.context.active_object
+	me = obj.data
+	bm = bmesh.from_edit_mesh(me)
+
+	uv_layer = bm.loops.layers.uv.verify()
+
+	# adjust uv coordinates
+	for face in island:
+		for loop in face.loops:
+			loop_uv = loop[uv_layer]
+			loop_uv.uv[0] += dx
+			loop_uv.uv[1] += dy 
+	bmesh.update_edit_mesh(me)
+
+def get_island_BBOX(island):
+	points = []		
+	obj = bpy.context.active_object
+	me = obj.data
+	bm = bmesh.from_edit_mesh(me)
+
+	uv_layer = bm.loops.layers.uv.verify()
+
+	for face in island:
+		for loop in face.loops:
+			loop_uv = loop[uv_layer]
+			points.append(loop_uv.uv)
+
+	x_coordinates, y_coordinates = zip(*points)
+	island_bbox = [(min(x_coordinates), min(y_coordinates)), (max(x_coordinates), max(y_coordinates))]
+	bbox = {}
+	bbox['min'] = Vector((island_bbox[0]))
+	bbox['max'] = Vector((island_bbox[1]))
+	
+	print ("Island bbox", island_bbox)
+	return bbox
 
 
 def get_selected_faces():
@@ -277,9 +315,9 @@ def getSelectionIslands(bm=None, uv_layers=None):
 			islands.append(islandFaces)
 	
 	#Restore selection 
-	# for face in faces_selected:
-	# 	for loop in face.loops:
-	# 		loop[uv_layers].select = True
+	for face in faces_selected:
+		for loop in face.loops:
+			loop[uv_layers].select = True
 
 	
 	print("Islands: {}x".format(len(islands)))

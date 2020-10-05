@@ -5,7 +5,9 @@ from mathutils import Vector
 from collections import defaultdict
 from math import pi
 
+
 from . import utilities_uv
+
 
 
 class op(bpy.types.Operator):
@@ -46,9 +48,6 @@ class op(bpy.types.Operator):
 		return {'FINISHED'}
 
 
-
-
-
 def align(context, direction):
 	#Store selection
 	utilities_uv.selection_store()
@@ -70,31 +69,27 @@ def align(context, direction):
 
 	mode = bpy.context.scene.tool_settings.uv_select_mode
 	if mode == 'FACE' or mode == 'ISLAND':
-		print("____ Align Islands")
-		
 		#Collect UV islands
 		islands = utilities_uv.getSelectionIslands()
 
 		for island in islands:
-			
-			bpy.ops.uv.select_all(action='DESELECT')
-			utilities_uv.set_selected_faces(island)
-			bounds = utilities_uv.getSelectionBBox()
-
-			# print("Island "+str(len(island))+"x faces, delta: "+str(delta.y))
+			bounds = utilities_uv.get_island_BBOX(island)
 
 			if direction == "bottom":
-				delta = boundsAll['min'] - bounds['min'] 
-				bpy.ops.transform.translate(value=(0, delta.y, 0))
+				delta = boundsAll['min'] - bounds['min'] 				
+				utilities_uv.move_island(island, 0,delta.y)
+			
 			elif direction == "top":
 				delta = boundsAll['max'] - bounds['max']
-				bpy.ops.transform.translate(value=(0, delta.y, 0))
+				utilities_uv.move_island(island, 0,delta.y)
+			
 			elif direction == "left":
 				delta = boundsAll['min'] - bounds['min'] 
-				bpy.ops.transform.translate(value=(delta.x, 0, 0))
+				utilities_uv.move_island(island, delta.x,0)
+			
 			elif direction == "right":
 				delta = boundsAll['max'] - bounds['max']
-				bpy.ops.transform.translate(value=(delta.x, 0, 0))
+				utilities_uv.move_island(island, delta.x,0)
 			else:
 				print("Unkown direction: "+str(direction))
 
@@ -121,7 +116,7 @@ def align(context, direction):
 		bmesh.update_edit_mesh(obj.data)
 
 	#Restore selection
-	utilities_uv.selection_restore()
+	# utilities_uv.selection_restore()
 
 bpy.utils.register_class(op)
 

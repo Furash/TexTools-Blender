@@ -76,6 +76,6 @@ def main(context, angle):
 
 
 	#Restore selection
-	utilities_uv.selection_restore()
+	# utilities_uv.selection_restore()
 
 bpy.utils.register_class(op)
